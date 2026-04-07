@@ -12,17 +12,10 @@ if ! command -v cargo &> /dev/null; then
 fi
 
 if ! git diff --quiet; then
-    echo "Working directory is not clean. Commit or stash changes first."
+    echo "🚫 Working directory is not clean. Commit or stash changes first."
     exit 1
 fi
 
-if git rev-parse "v*" &> /dev/null; then
-    echo "⚠️  Existing tags found. Continue? (y/n)"
-    read -r answer
-    if [[ "$answer" != "y" ]]; then
-        exit 0
-    fi
-fi
 
 
 current_version=$(grep '^version =' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
@@ -51,11 +44,7 @@ else
     sed -i "s/$CRATE_NAME = \".*\"/$CRATE_NAME = \"$new_version\"/" README.md
 fi
 
-echo "✅ Updated version to $new_version"
-
-
-echo "Dry run – exiting"
-exit 0
+echo "Updated version to $new_version"
 
 
 git add Cargo.toml README.md
