@@ -51,7 +51,7 @@ git add Cargo.toml README.md
 git commit -m "chore: bump version to $new_version"
 git tag "v$new_version"
 
-
+cargo clean
 if cargo publish; then
     echo "✅ Published successfully"
     git push origin main --tags
