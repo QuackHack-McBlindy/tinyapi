@@ -1,6 +1,6 @@
 [package]
 name = "tinyapi"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["QuackHack-McBlindy"]
 license = "MIT"
 description = "Tiny HTTP API framework for embedded Rust (no_std + alloc)"
