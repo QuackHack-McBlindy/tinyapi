@@ -2,11 +2,12 @@
 //!
 //! # Example (on ESP32‑S3)
 //! ```no_run
-//! use tinyapi::{register_route, Response, web_server_task};
+//! use tinyapi::{register_route, Response, web_server_task, log};
 //!
 //! register_route("/", |_req| Response::html(include_str!("index.html"))).await;
 //! register_route("/led/{state}", |req| {
 //!     let state = req.param("state").unwrap_or("?");
+//!     log!("LED set to {}", state);
 //!     Response::text(&format!("LED set to {}", state))
 //! }).await;
 //!
@@ -21,8 +22,9 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::vec::Vec;
+use core::fmt::Write as _;
 use embassy_net::{Stack, tcp::TcpSocket};
-use embassy_time::{Duration, Timer};
+use embassy_time::{Duration, Timer, Instant};
 use embassy_futures::select::select;
 use embassy_sync::mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
@@ -37,7 +39,7 @@ macro_rules! info {
 }
 
 // -----------------------------------------------------------------------------
-// Public API
+// Public API (Request, Response, etc.)
 // -----------------------------------------------------------------------------
 
 /// HTTP request data – lives only as long as the request buffer.
@@ -86,7 +88,7 @@ impl Response {
     }
 }
 
-// Handler trait – implemented for closures.
+// Handler trait
 pub trait Handler: Send + Sync {
     fn call(&self, req: Request) -> Response;
 }
@@ -148,14 +150,100 @@ fn match_route<'a>(path: &'a str, pattern: &'a str) -> Option<FnvIndexMap<&'a st
     Some(params)
 }
 
-// Global router
 static ROUTER: Mutex<CriticalSectionRawMutex, Router> = Mutex::new(Router::new());
 
 /// Register a GET route with a path pattern (e.g., `/led/{state}`).
-/// Must be called before spawning `web_server_task`.
 pub async fn register_route(pattern: &str, handler: impl Handler + 'static) {
     let mut router = ROUTER.lock().await;
     router.get(pattern, handler);
+}
+
+// -----------------------------------------------------------------------------
+// Logging subsystem (optional)
+// -----------------------------------------------------------------------------
+
+#[cfg(feature = "log")]
+mod log {
+    use alloc::string::String;
+    use heapless::Vec;
+    use critical_section::Mutex as CSMutex;
+    use core::cell::RefCell;
+    use crate::{Request, Response};
+
+    const MAX_LOGS: usize = 100;
+
+    struct LogState {
+        logs: Vec<String, MAX_LOGS>,
+    }
+
+    static LOG_STATE: CSMutex<RefCell<LogState>> = CSMutex::new(RefCell::new(LogState { logs: Vec::new() }));
+
+    /// Push a log message (synchronous).
+    pub fn push_log(msg: String) {
+        critical_section::with(|cs| {
+            let state = LOG_STATE.borrow(cs);
+            let mut state = state.borrow_mut();
+            if state.logs.len() == MAX_LOGS {
+                state.logs.remove(0);
+            }
+            state.logs.push(msg).ok();
+        });
+    }
+
+    /// Get all logs as an HTML string (synchronous).
+    fn get_logs_html() -> String {
+        critical_section::with(|cs| {
+            let state = LOG_STATE.borrow(cs);
+            let state = state.borrow();
+            let mut html = String::from("<html><head><meta http-equiv='refresh' content='2'><title>Logs</title></head><body><pre>");
+            for entry in state.logs.iter() {
+                html.push_str(entry);
+                html.push('\n');
+            }
+            html.push_str("</pre></body></html>");
+            html
+        })
+    }
+
+    // A named function that acts as the handler – works with any lifetime.
+    fn logs_handler(_req: Request<'_>) -> Response {
+        let has_logs = critical_section::with(|cs| {
+            let state = LOG_STATE.borrow(cs);
+            let state = state.borrow();
+            !state.logs.is_empty()
+        });
+
+        if !has_logs {
+            let default = r#"<html><head><meta http-equiv='refresh' content='2'><title>Logs</title></head><body><pre>No logs yet. Use tinyapi::log!() to record events.</pre></body></html>"#;
+            return Response::html(default);
+        }
+
+        let body = get_logs_html();
+        Response::html(&body)
+    }
+
+    /// Register the `/logs` route (called automatically by `web_server_task`).
+    pub async fn register_logs_route() {
+        crate::register_route("/logs", logs_handler).await;
+    }
+}
+#[cfg(feature = "log")]
+pub use log::push_log as _push_log;
+
+/// Log a message to the built‑in log buffer (visible at `/logs`).
+/// Example: `tinyapi::log!("Temperature: {}°C", temp).await;`
+/// Note: This macro is async because it uses `embassy_time::Instant::now().await`.
+#[macro_export]
+macro_rules! log {
+    ($($arg:tt)*) => {{
+        #[cfg(feature = "log")]
+        {
+            let msg = alloc::format!($($arg)*);
+            let timestamp = embassy_time::Instant::now().as_millis();
+            let full = alloc::format!("[{} ms] {}", timestamp, msg);
+            $crate::_push_log(full);
+        }
+    }};
 }
 
 // -----------------------------------------------------------------------------
@@ -204,7 +292,11 @@ async fn send_response(socket: &mut TcpSocket<'_>, resp: Response) -> Result<(),
 #[embassy_executor::task]
 pub async fn web_server_task(stack: &'static Stack<'static>) -> ! {
     const PORT: u16 = 80;
-    info!("HTTP server starting on port {}", PORT);
+    info!("🌐 HTTP server starting on port {}", PORT);
+
+    // Register built‑in log route if feature enabled
+    #[cfg(feature = "log")]
+    log::register_logs_route().await;
 
     loop {
         let mut rx_buffer = [0; 1024];
@@ -229,7 +321,7 @@ pub async fn web_server_task(stack: &'static Stack<'static>) -> ! {
             embassy_futures::select::Either::Second(_) => continue,
         }
 
-        // Read headers
+        // Read headers (same as before)
         let mut request_buf = [0; 512];
         let mut total_read = 0;
         let mut found_end = false;

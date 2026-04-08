@@ -25,7 +25,7 @@ Add **tinyapi** as a dependency in `Cargo.toml`.
 
 ```toml
 [dependencies]
-tinyapi = "0.1.2"
+tinyapi = "0.1.1"
 ```
   
 
@@ -54,19 +54,19 @@ async fn main(spawner: Spawner) {
     // Serve an embedded index.html (place file in crate root)
     register_route("/", |_req| {
         Response::html(include_str!("index.html"))
-    }).await;
+    })
 
     // Inline HTML response
     register_route("/hello_world", |_req| {
         Response::html("<h1>Hello from ESP32!</h1>")
-    }).await;
+    })
 
     // Path parameter example
     register_route("/led/{state}", |req| {
         let state = req.param("state").unwrap_or("?");
         info!("Setting LED to {}", state);
         Response::text(&format!("LED is now {}", state))
-    }).await;
+    })
 
     // Start server
     spawner.spawn(web_server_task(stack)).unwrap();
@@ -74,6 +74,10 @@ async fn main(spawner: Spawner) {
     loop { /* other tasks */ }
 }
 ```
+
+
+<br>
+
 
 
 <br>
@@ -94,5 +98,6 @@ Contributions are welcomed.
 > Buy me a coffee, or become a sponsor.  
 > Thanks for supporting open source!    
 
+₿ *Donate crypto? Wallet:* `pungkula.x` 
 <a href="https://www.buymeacoffee.com/quackhackmcblindy" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
