@@ -1,6 +1,6 @@
 [package]
 name = "tinyapi"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2024"
 rust-version = "1.75"
 description = "Tiny HTTP API framework for embedded Rust (no_std + alloc)"
