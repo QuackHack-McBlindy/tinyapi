@@ -79,6 +79,15 @@ impl Response {
         }
     }
 
+    pub fn script(body: &str) -> Self {
+        Self {
+            status: "200 OK",
+            content_type: "application/javascript; charset=utf-8",
+            body: body.as_bytes().to_vec(),
+        }
+    }
+
+   
     pub fn not_found() -> Self {
         Self {
             status: "404 Not Found",
