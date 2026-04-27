@@ -25,7 +25,7 @@ Add **tinyapi** as a dependency in `Cargo.toml`.
 
 ```toml
 [dependencies]
-tinyapi = "0.1.1"
+tinyapi = "0.1.6"
 ```
   
 
