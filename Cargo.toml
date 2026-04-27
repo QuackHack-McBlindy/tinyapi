@@ -1,11 +1,11 @@
 [package]
 name = "tinyapi"
-version = "0.1.5"
-edition = "2021"
-rust-version = "1.75"
+version = "0.1.6"
+edition = "2024"
+
 description = "Tiny HTTP API framework for embedded Rust (no_std + alloc)"
 license = "MIT"
-repository = "https://github.com/QuackHack-McBlindy/$NAME"
+repository = "https://github.com/QuackHack-McBlindy/tinyapi"
 authors = ["QuackHack-McBlindy"]
 readme = "README.md"
 keywords = ["embedded", "http", "api", "embassy", "no-std"]
@@ -22,7 +22,8 @@ embassy-net = { version = "0.9.0", default-features = false, features = ["tcp", 
 embassy-time = { version = "0.5.0", default-features = false }
 embassy-futures = "0.1.0"
 embassy-sync = { version = "0.8.0", default-features = false }
-embassy-executor = { version = "0.9.1", default-features = false, features = ["defmt"] }
+embassy-executor = { version = "0.10.0", default-features = false, features = ["defmt"] }
 heapless = "0.8.0"
 defmt = { version = "1.0.0", optional = true }
 critical-section = "1.2.0"
+embedded-io-async = { version = "0.7.0", features = ["defmt"] }

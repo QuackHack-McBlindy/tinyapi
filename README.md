@@ -25,7 +25,7 @@ Add **tinyapi** as a dependency in `Cargo.toml`.
 
 ```toml
 [dependencies]
-tinyapi = "0.1.5"
+tinyapi = "0.1.1"
 ```
   
 
@@ -91,13 +91,19 @@ Contributions are welcomed.
 
 <br><br>
 
-## ☕
+## **☕**
 
 [![Sponsors](https://img.shields.io/github/sponsors/QuackHack-McBlindy?logo=githubsponsors&label=Sponsor&style=flat&labelColor=ff1493&logoColor=fff&color=rgba(234,74,170,0.5) "")](https://github.com/sponsors/QuackHack-McBlindy) [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Sponsor?style=flat&logo=buymeacoffee&logoColor=fff&labelColor=ff1493&color=ff1493)](https://buymeacoffee.com/quackhackmcblindy)
-> Like my work?   
+> 🦆🧑‍🦯 says ⮞ Hi! I'm QuackHack-McBlindy!  
+> Like my work?  
 > Buy me a coffee, or become a sponsor.  
-> Thanks for supporting open source!    
+> Thanks for supporting open source/hungry developers ♥️🦆!   
 
-₿ *Donate crypto? Wallet:* `pungkula.x` 
+♥️₿ *Wallet:* `pungkula.x`  
 <a href="https://www.buymeacoffee.com/quackhackmcblindy" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
+<br>
+
+## **License**
+
+**MIT**  

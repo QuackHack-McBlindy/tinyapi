@@ -1,4 +1,4 @@
-//! TinyAPI – a minimal, no_std HTTP API framework for Embassy.
+//! TinyAPI – a minimal, no_std HTTP API framework for Embassy
 //!
 //! # Example (on ESP32‑S3)
 //! ```no_run
@@ -38,9 +38,7 @@ macro_rules! info {
     ($($arg:tt)*) => {};
 }
 
-// -----------------------------------------------------------------------------
-// Public API (Request, Response, etc.)
-// -----------------------------------------------------------------------------
+
 
 /// HTTP request data – lives only as long as the request buffer.
 pub struct Request<'a> {
@@ -167,10 +165,8 @@ pub async fn register_route(pattern: &str, handler: impl Handler + 'static) {
     router.get(pattern, handler);
 }
 
-// -----------------------------------------------------------------------------
-// Logging subsystem (optional)
-// -----------------------------------------------------------------------------
 
+// Logging subsystem (optional)
 #[cfg(feature = "log")]
 mod log {
     use alloc::string::String;
@@ -241,7 +237,7 @@ pub use log::push_log as _push_log;
 
 /// Log a message to the built‑in log buffer (visible at `/logs`).
 /// Example: `tinyapi::log!("Temperature: {}°C", temp).await;`
-/// Note: This macro is async because it uses `embassy_time::Instant::now().await`.
+/// Note Async
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => {{
@@ -255,10 +251,8 @@ macro_rules! log {
     }};
 }
 
-// -----------------------------------------------------------------------------
-// HTTP Server Task
-// -----------------------------------------------------------------------------
 
+// HTTP Server Task
 async fn write_all(socket: &mut TcpSocket<'_>, mut buf: &[u8]) -> Result<(), embassy_net::tcp::Error> {
     while !buf.is_empty() {
         let n = socket.write(buf).await?;
@@ -301,7 +295,7 @@ async fn send_response(socket: &mut TcpSocket<'_>, resp: Response) -> Result<(),
 #[embassy_executor::task]
 pub async fn web_server_task(stack: &'static Stack<'static>) -> ! {
     const PORT: u16 = 80;
-    info!("🌐 HTTP server starting on port {}", PORT);
+    info!("📡 ☑️ 🌐 HTTP up on port: {}", PORT);
 
     // Register built‑in log route if feature enabled
     #[cfg(feature = "log")]
@@ -330,7 +324,7 @@ pub async fn web_server_task(stack: &'static Stack<'static>) -> ! {
             embassy_futures::select::Either::Second(_) => continue,
         }
 
-        // Read headers (same as before)
+        // Read headers
         let mut request_buf = [0; 512];
         let mut total_read = 0;
         let mut found_end = false;
