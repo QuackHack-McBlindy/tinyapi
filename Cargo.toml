@@ -9,7 +9,12 @@ repository = "https://github.com/QuackHack-McBlindy/tinyapi"
 authors = ["QuackHack-McBlindy"]
 readme = "README.md"
 keywords = ["embedded", "http", "api", "embassy", "no-std"]
-categories = ["embedded", "network-programming"]
+categories = [
+    "no-std",
+    "development-tools",
+    "embedded",
+    "network-programming",
+]
 
 
 [features]
