@@ -16,19 +16,21 @@
 
 #![no_std]
 
+
 extern crate alloc;
 
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::vec::Vec;
-use core::fmt::Write as _;
 use embassy_net::{Stack, tcp::TcpSocket};
-use embassy_time::{Duration, Timer, Instant};
+use embassy_time::{Duration, Timer};
 use embassy_futures::select::select;
 use embassy_sync::mutex::Mutex;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use heapless::FnvIndexMap;
+mod client;
+pub use client::{http_get, HttpResponse};
 
 // Conditional logging
 #[cfg(feature = "defmt")]
@@ -109,7 +111,7 @@ where
     }
 }
 
-// Router
+// ROUTER
 struct Router {
     routes: Vec<(String, Box<dyn Handler>)>,
 }
@@ -260,6 +262,7 @@ async fn write_all(socket: &mut TcpSocket<'_>, mut buf: &[u8]) -> Result<(), emb
     }
     Ok(())
 }
+
 
 async fn write_content_length(socket: &mut TcpSocket<'_>, len: usize) -> Result<(), embassy_net::tcp::Error> {
     let mut buf = [0u8; 10];
