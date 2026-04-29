@@ -1,14 +1,15 @@
-// client.rs – HTTP GET/POST client for tinyapi (caller-provided buffer)
+// GET/POST CLIENT FOR tinyapi (CALLER-PROVIDED BUFFER)
 use embassy_net::{Stack, tcp::TcpSocket};
 use embassy_time::Duration;
 
-/// Response from an HTTP request. The body is a slice into the caller’s buffer.
+/// RESPONSE FROM HTTP-REQUEST
+/// THE BODY IS A SLICE INTO THE CALLER'S BUFFER
 pub struct HttpResponse<'a> {
     pub status: u16,
     pub body: &'a [u8],
 }
 
-/// Write all bytes to the socket.
+/// WRITE ALL BYTES TO THE SOCKET
 async fn write_all(socket: &mut TcpSocket<'_>, buf: &[u8]) -> Result<(), embassy_net::tcp::Error> {
     let mut written = 0;
     while written < buf.len() {
@@ -21,9 +22,9 @@ async fn write_all(socket: &mut TcpSocket<'_>, buf: &[u8]) -> Result<(), embassy
     Ok(())
 }
 
-/// Send an HTTP GET request.
-/// `buf` is a scratch buffer used for both the raw response and the returned body slice.
-/// It must be large enough for headers + body, otherwise the body will be truncated.
+/// SEND AN HTTP GET-REQUEST
+/// `buf` IS A SCRATCH BUFFER USED FOR BOTH THE RAW RESPONSE AND THE RETURNED BODY SLICE
+/// IT MUST BE LARGE ENOUGHH FOR HEADERS+BODY TO AVOID TRUNCATIN BODY
 pub async fn http_get<'a>(
     stack: Stack<'a>,
     url: &str,
@@ -33,26 +34,26 @@ pub async fn http_get<'a>(
     let ip = parse_ip(host)?;
     let endpoint = (ip, port);
 
-    let mut rx_buf = [0u8; 1024];   // TCP stack buffer
+    let mut rx_buf = [0u8; 1024]; // TCP STACK BUFFER
     let mut tx_buf = [0u8; 512];
     let mut socket = TcpSocket::new(stack, &mut rx_buf, &mut tx_buf);
     socket.set_timeout(Some(Duration::from_secs(5)));
     socket.connect(endpoint).await.map_err(|_| ())?;
 
-    // Format and send request
+    // FORMAT & SEND REQUEST
     let mut req_buf = [0u8; 256];
     let req_len = format_request(&mut req_buf, "GET", host, path);
     write_all(&mut socket, &req_buf[..req_len]).await.map_err(|_| ())?;
 
-    // Read into caller’s buffer
+    // READ INTO CALLER'S BUFFER
     let total = read_response(&mut socket, buf).await;
 
     parse_response(&buf[..total])
 }
 
-/// Send an HTTP POST request.
-/// `body` is the payload, `content_type` is the MIME type (e.g., "application/json").
-/// `buf` works exactly as in `http_get`.
+/// SEND AN HTTP POST REQUEST
+/// `body` IS THE PAYLOAD, `content_type` IS THE MIME TYPE (e.g., "application/json")
+/// `buf` WORKS EXACTLY AS IN `http_get`
 pub async fn http_post<'a>(
     stack: Stack<'a>,
     url: &str,
@@ -70,17 +71,15 @@ pub async fn http_post<'a>(
     socket.set_timeout(Some(Duration::from_secs(5)));
     socket.connect(endpoint).await.map_err(|_| ())?;
 
-    // Format POST request
+    // FORMAT POST REQUEST
     let mut req_buf = [0u8; 512]; // may need a bit more space for headers + body
     let req_len = format_post_request(&mut req_buf, host, path, content_type, body);
     write_all(&mut socket, &req_buf[..req_len]).await.map_err(|_| ())?;
-
     let total = read_response(&mut socket, buf).await;
-
     parse_response(&buf[..total])
 }
 
-/// Read everything from the socket into `buf` (until close or buffer full).
+/// READ EVERYTHING FROM THE SOCKET INTO `buf` (UNTIL CLOSE or BUFFER FULL)
 async fn read_response(socket: &mut TcpSocket<'_>, buf: &mut [u8]) -> usize {
     let mut total = 0;
     loop {
@@ -98,7 +97,7 @@ async fn read_response(socket: &mut TcpSocket<'_>, buf: &mut [u8]) -> usize {
     total
 }
 
-// ---------- helpers ----------
+// HELPERS
 
 fn parse_url(url: &str) -> Result<(&str, u16, &str), ()> {
     let url = url.strip_prefix("http://").unwrap_or(url);
@@ -145,7 +144,7 @@ fn format_post_request(buf: &mut [u8], host: &str, path: &str, content_type: &st
     for &b in b"\r\nContent-Type: " { if pos < buf.len() { buf[pos] = b; pos += 1; } }
     for &b in content_type.as_bytes() { if pos < buf.len() { buf[pos] = b; pos += 1; } }
     for &b in b"\r\nContent-Length: " { if pos < buf.len() { buf[pos] = b; pos += 1; } }
-    // convert body length to ASCII (at most 3 digits – safe for esp32 small posts)
+    // CONVERT BODY LENGTH TO ASCII (MOST 3 DIGITS SAFE4ESP)
     let len = body.len();
     if len >= 100 { if pos < buf.len() { buf[pos] = b'0' + (len / 100) as u8; pos += 1; } }
     if len >= 10  { if pos < buf.len() { buf[pos] = b'0' + ((len / 10) % 10) as u8; pos += 1; } }
@@ -160,7 +159,7 @@ fn parse_response<'a>(data: &'a [u8]) -> Result<HttpResponse<'a>, ()> {
     let status_str = core::str::from_utf8(&data[9..12]).map_err(|_| ())?;
     let status = status_str.parse::<u16>().unwrap_or(0);
 
-    // Find body start after \r\n\r\n
+    // FIND BODY START AFTER `\r\n\r\n`
     let mut body_start = data.len();
     for i in 0..data.len().saturating_sub(3) {
         if &data[i..i+4] == b"\r\n\r\n" {

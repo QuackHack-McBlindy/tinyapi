@@ -1,4 +1,4 @@
-//! TinyAPI – a minimal, no_std HTTP API framework for Embassy
+//! tinyAPI – a minimal, no_std HTTP API framework for Embassy
 //!
 //! # Example (on ESP32‑S3)
 //! ```no_run
@@ -15,7 +15,6 @@
 //! ```
 
 #![no_std]
-
 
 extern crate alloc;
 
@@ -42,7 +41,7 @@ macro_rules! info {
 
 
 
-/// HTTP request data – lives only as long as the request buffer.
+/// HTTP REQUEST DATA – LIVES ONLY AS LONG AS THE REQUEST BUFFER
 pub struct Request<'a> {
     pub method: &'a str,
     pub path: &'a str,
@@ -55,7 +54,7 @@ impl<'a> Request<'a> {
     }
 }
 
-/// HTTP response (owned data).
+/// HTTP RESPONSE (OWNED DATA)
 pub struct Response {
     pub status: &'static str,
     pub content_type: &'static str,
@@ -97,7 +96,7 @@ impl Response {
     }
 }
 
-// Handler trait
+// HANDLER TRAIT
 pub trait Handler: Send + Sync {
     fn call(&self, req: Request) -> Response;
 }
@@ -161,14 +160,14 @@ fn match_route<'a>(path: &'a str, pattern: &'a str) -> Option<FnvIndexMap<&'a st
 
 static ROUTER: Mutex<CriticalSectionRawMutex, Router> = Mutex::new(Router::new());
 
-/// Register a GET route with a path pattern (e.g., `/led/{state}`).
+/// REGISTER A GET  with a path pattern (e.g., `/led/{state}`).
 pub async fn register_route(pattern: &str, handler: impl Handler + 'static) {
     let mut router = ROUTER.lock().await;
     router.get(pattern, handler);
 }
 
 
-// Logging subsystem (optional)
+// LOG (test optional)
 #[cfg(feature = "log")]
 mod log {
     use alloc::string::String;
@@ -185,7 +184,7 @@ mod log {
 
     static LOG_STATE: CSMutex<RefCell<LogState>> = CSMutex::new(RefCell::new(LogState { logs: Vec::new() }));
 
-    /// Push a log message (synchronous).
+    /// PUSH A LOG MESSAGE (synchronous)
     pub fn push_log(msg: String) {
         critical_section::with(|cs| {
             let state = LOG_STATE.borrow(cs);
@@ -197,7 +196,7 @@ mod log {
         });
     }
 
-    /// Get all logs as an HTML string (synchronous).
+    /// GET ALL LOGS AS HTML STRINGS (synchronous)
     fn get_logs_html() -> String {
         critical_section::with(|cs| {
             let state = LOG_STATE.borrow(cs);
@@ -212,7 +211,7 @@ mod log {
         })
     }
 
-    // A named function that acts as the handler – works with any lifetime.
+    // A NAMED FUNCTION THAT ACTS AS THE HANDLER - WORKS WITH ANY LIFETIME
     fn logs_handler(_req: Request<'_>) -> Response {
         let has_logs = critical_section::with(|cs| {
             let state = LOG_STATE.borrow(cs);
@@ -229,7 +228,7 @@ mod log {
         Response::html(&body)
     }
 
-    /// Register the `/logs` route (called automatically by `web_server_task`).
+    /// REGISTER THE `/logs` ROUTE (CALLED AUTOMATICALLY BY `web_server_task`)
     pub async fn register_logs_route() {
         crate::register_route("/logs", logs_handler).await;
     }
@@ -237,9 +236,9 @@ mod log {
 #[cfg(feature = "log")]
 pub use log::push_log as _push_log;
 
-/// Log a message to the built‑in log buffer (visible at `/logs`).
+/// LOG A MESSAGE TO THE BUILT-IN LOG BUFFER (VISIBLE AT `/logs`)
 /// Example: `tinyapi::log!("Temperature: {}°C", temp).await;`
-/// Note Async
+/// NOTE ASYNC
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => {{
@@ -254,7 +253,7 @@ macro_rules! log {
 }
 
 
-// HTTP Server Task
+// HTTP SERVER TASK
 async fn write_all(socket: &mut TcpSocket<'_>, mut buf: &[u8]) -> Result<(), embassy_net::tcp::Error> {
     while !buf.is_empty() {
         let n = socket.write(buf).await?;
@@ -294,13 +293,14 @@ async fn send_response(socket: &mut TcpSocket<'_>, resp: Response) -> Result<(),
     Ok(())
 }
 
-/// The main HTTP server task. Spawn this after registering routes.
+/// THE MAIN HTTP SERVER TASK. 
+/// SPAWN THIS AFTER REGESTERING ROUTES.
 #[embassy_executor::task]
 pub async fn web_server_task(stack: &'static Stack<'static>) -> ! {
     const PORT: u16 = 80;
-    info!("📡 ☑️ 🌐 HTTP up on port: {}", PORT);
+    info!("📡 ☑️ 🌐 HTTP server online on port: {}", PORT);
 
-    // Register built‑in log route if feature enabled
+    // REGISTER LOG ROUTE IF FEATURE ENABLED
     #[cfg(feature = "log")]
     log::register_logs_route().await;
 
@@ -327,7 +327,7 @@ pub async fn web_server_task(stack: &'static Stack<'static>) -> ! {
             embassy_futures::select::Either::Second(_) => continue,
         }
 
-        // Read headers
+        // READ HEADERS
         let mut request_buf = [0; 512];
         let mut total_read = 0;
         let mut found_end = false;
