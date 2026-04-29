@@ -25,7 +25,7 @@ Add **tinyapi** as a dependency in `Cargo.toml`.
 
 ```toml
 [dependencies]
-tinyapi = "0.1.1"
+tinyapi = "0.1.7"
 ```
   
 
@@ -75,18 +75,6 @@ async fn main(spawner: Spawner) {
 }
 ```
 
-
-## **Features**
-
-- **True `no_std` – runs on bare‑metal, no operating system required.**  
-
-- **Minimal dependencies – only embedded-hal (version 1.0)**  
-
-- **No logging framework – the published code contains no defmt or log calls, keeping the dependency tree tiny**  
-
-- **Exhaustive clock coefficient table – supports common MCLK / sample rate combinations for 8 k, 11.025 k, 12 k, 16 k, 22.05 k, 24 k, 32 k, 44.1 k, 48 k, 64 k, 88.2 k, and 96 kHz**  
-
-- **Simple, ergonomic API – a single configuration struct and a handful of methods cover the most common use cases**  
 
 
 <br><br>
