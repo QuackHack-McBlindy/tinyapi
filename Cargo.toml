@@ -8,7 +8,7 @@ license = "MIT"
 repository = "https://github.com/QuackHack-McBlindy/tinyapi"
 authors = ["QuackHack-McBlindy"]
 readme = "README.md"
-keywords = ["embedded", "esp32", "http", "api", "embassy", "no-std"]
+keywords = ["embedded", "esp32", "http", "api", "no-std"]
 categories = [
     "no-std",
     "development-tools",
