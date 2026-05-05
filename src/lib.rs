@@ -94,11 +94,11 @@ impl Response {
         }
     }
 
-    pub fn favicon(body: &str) -> Self {
+    pub fn favicon(body: &[u8]) -> Self {
         Self {
             status: "200 OK",
-            content_type: "image/x-icon; charset=utf-8",
-            body: body.as_bytes().to_vec(),
+            content_type: "image/x-icon",
+            body: body.to_vec(),
         }
     }
    
