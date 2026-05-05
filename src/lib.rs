@@ -86,6 +86,21 @@ impl Response {
         }
     }
 
+    pub fn stylesheet(body: &str) -> Self {
+        Self {
+            status: "200 OK",
+            content_type: "text/css; charset=utf-8",
+            body: body.as_bytes().to_vec(),
+        }
+    }
+
+    pub fn favicon(body: &str) -> Self {
+        Self {
+            status: "200 OK",
+            content_type: "image/x-icon; charset=utf-8",
+            body: body.as_bytes().to_vec(),
+        }
+    }
    
     pub fn not_found() -> Self {
         Self {
